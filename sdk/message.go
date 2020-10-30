@@ -458,6 +458,40 @@ func (rc *RongCloud) PrivateSend(senderID string, targetID []string, objectName 
 	return err
 }
 
+func (rc *RongCloud) PrivateSend2(senderID string, targetID []string, objectName string, content string,
+	pushContent, pushData string, count, verifyBlacklist, isPersisted, isIncludeSender, contentAvailable int) error {
+	if senderID == "" {
+		return RCErrorNew(1002, "Paramer 'senderID' is required")
+	}
+
+	if len(targetID) == 0 {
+		return RCErrorNew(1002, "Paramer 'targetID' is required")
+	}
+
+	req := httplib.Post(rc.rongCloudURI + "/message/private/publish." + ReqType)
+	req.SetTimeout(time.Second*rc.timeout, time.Second*rc.timeout)
+	rc.fillHeader(req)
+	req.Param("fromUserId", senderID)
+	for _, v := range targetID {
+		req.Param("toUserId", v)
+	}
+	req.Param("objectName", objectName)
+
+	req.Param("content", content)
+	req.Param("pushData", pushData)
+	req.Param("pushContent", pushContent)
+	req.Param("count", strconv.Itoa(count))
+	req.Param("verifyBlacklist", strconv.Itoa(verifyBlacklist))
+	req.Param("isPersisted", strconv.Itoa(isPersisted))
+	req.Param("contentAvailable", strconv.Itoa(contentAvailable))
+	req.Param("isIncludeSender", strconv.Itoa(isIncludeSender))
+
+	_, err := rc.do(req)
+	if err != nil {
+		rc.urlError(err)
+	}
+	return err
+}
 // PrivateRecall 撤回单聊消息方法
 /*
 *
